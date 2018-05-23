@@ -72,7 +72,7 @@ func (r *Resolver) CreateData(ctx context.Context, args struct {
 
 func (r *Resolver) Last(ctx context.Context) ([]*dataResolver, error) {
 	res, err := r.opentsdbClient.Query(tsdb.QueryParam{
-		Start: time.Now().Unix(),
+		Start: time.Now().Add(-5 * time.Second).Unix(),
 		Queries: []tsdb.SubQuery{
 			tsdb.SubQuery{
 				Aggregator: "avg",
@@ -109,8 +109,6 @@ func (r *Resolver) Last(ctx context.Context) ([]*dataResolver, error) {
 		dcs = append(dcs, &dataResolver{d})
 	}
 
-	log.Printf("dcs len: %v", len(dcs))
-
 	return dcs, nil
 }
 
@@ -134,7 +132,7 @@ func (r *newDataResolver) NewData(ctx context.Context, args struct {
 }) (chan *newDataEventResolver, error) {
 	c := make(chan *newDataEventResolver)
 
-	go func(ctx context.Context) {
+	go func() {
 		ticker := time.NewTicker(2 * time.Second)
 		defer ticker.Stop()
 
@@ -155,18 +153,16 @@ func (r *newDataResolver) NewData(ctx context.Context, args struct {
 					},
 				})
 				if err != nil {
-					log.Printf("err: %v", err)
+					log.Printf("error querying last: %v", err)
 					return
 				}
 
 				for _, dp := range res.QueryRespCnts {
 					value, err := strconv.ParseFloat(dp.Value, 64)
 					if err != nil {
-						log.Printf("err: %v", err)
+						log.Printf("error parsing float: %v", err)
 						return
 					}
-
-					log.Printf("dp.Timestamp: %v", dp.Timestamp)
 
 					c <- &newDataEventResolver{
 						timestamp: graphql.Time{time.Unix(dp.Timestamp/1000, 0)},
@@ -176,7 +172,7 @@ func (r *newDataResolver) NewData(ctx context.Context, args struct {
 				}
 			}
 		}
-	}(ctx)
+	}()
 
 	return c, nil
 }

@@ -35,19 +35,22 @@ func (sm *SubscriptionsManager) Start() {
 		case <-sm.ctx.Done():
 			return
 		case sub := <-sm.subCh:
-			c, err := sm.schema.Subscribe(sm.ctx, sub.Query, sub.OperationName, sub.Variables)
-			if err != nil {
-				log.Printf("error subscribing: %v", err)
-				return
-			}
-
 			go func() {
+				ctx, cancel := context.WithCancel(sm.ctx)
+				c, err := sm.schema.Subscribe(ctx, sub.Query, sub.OperationName, sub.Variables)
+				if err != nil {
+					log.Printf("error subscribing: %v", err)
+					return
+				}
+
 				for {
 					select {
 					case <-sm.ctx.Done():
+						cancel()
 						return
 					case <-sub.StopCh():
 						log.Printf("shutdown upstream sub %v", sub.ID)
+						cancel()
 						return
 					case resp := <-c:
 						if resp != nil {
