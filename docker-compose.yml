@@ -1,0 +1,49 @@
+version: '3'
+services:
+  web:
+    image: node:8-alpine
+    ports:
+      - 3000:3000
+    working_dir: /app
+    volumes:
+      - ./js:/app
+    command: >
+        /bin/ash -c "[[ -d node_modules ]] || yarn && yarn start"
+    networks:
+      - go-graphql-subscription-example
+  server:
+    build: go
+    ports:
+      - 5000:5000
+    environment:
+      OPENTSDB_HOST: opentsdb:4242
+    working_dir: /go/src/github.com/yeouchien/go-graphql-subscription-example
+    volumes:
+      - .:/go/src/github.com/yeouchien/go-graphql-subscription-example
+    command: ["go", "run", "go/server/main.go" ]
+    networks:
+      - go-graphql-subscription-example
+    links:
+      - opentsdb
+  publisher:
+    build: go
+    environment:
+      SERVER_URL: http://server:5000/graphql
+    working_dir: /go/src/github.com/yeouchien/go-graphql-subscription-example
+    volumes:
+      - .:/go/src/github.com/yeouchien/go-graphql-subscription-example
+    command: ["go", "run", "go/publisher/main.go" ]
+    networks:
+      - go-graphql-subscription-example
+    links:
+      - server
+  opentsdb:
+    image: spdigital/opentsdb
+    ports:
+      - 4242:4242
+      - 16010:16010
+    networks:
+      - go-graphql-subscription-example
+
+networks:
+  go-graphql-subscription-example:
