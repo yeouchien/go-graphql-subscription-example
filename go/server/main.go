@@ -1,22 +1,17 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/functionalfoundry/graphqlws"
 	graphql "github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/relay"
 	"github.com/yeouchien/go-graphql-subscription-example/go/graph"
-	"github.com/yeouchien/go-graphql-subscription-example/go/subscriptionsmanager"
+	"github.com/yeouchien/go-graphql-subscription-example/go/wshandler"
 )
 
 func main() {
-	mainCtx, mainCancel := context.WithCancel(context.Background())
-	defer mainCancel()
-
 	r, err := graph.NewResolver(os.Getenv("OPENTSDB_HOST"))
 	if err != nil {
 		log.Fatalf("error getting resolver: %v", err)
@@ -36,16 +31,7 @@ func main() {
 		w.Write(graphiqlHTML)
 	})
 	http.HandleFunc("/graphql", allowCors(graphqlHandler))
-
-	// graphQL subscription handler
-	subCh := make(chan *graphqlws.Subscription)
-	sm := subscriptionsmanager.New(mainCtx, subCh, s)
-	go sm.Start()
-
-	subscriptionHandler := graphqlws.NewHandler(
-		graphqlws.HandlerConfig{SubscriptionManager: sm},
-	)
-	http.Handle("/subscriptions", subscriptionHandler)
+	http.Handle("/subscriptions", wshandler.NewWSHandler(s))
 
 	addr := ":" + os.Getenv("PORT")
 	if addr == ":" {

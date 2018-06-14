@@ -114,9 +114,10 @@ func (r *Resolver) Last(ctx context.Context) ([]*dataResolver, error) {
 
 type newDataResolver struct {
 	opentsdbClient tsdb.Client
+	newDataEvents  chan *newDataEvent
 }
 
-type newDataEventResolver struct {
+type newDataEvent struct {
 	timestamp graphql.Time
 	value     float64
 	deviceID  string
@@ -129,8 +130,8 @@ type newDataInput struct {
 
 func (r *newDataResolver) NewData(ctx context.Context, args struct {
 	Input newDataInput
-}) (chan *newDataEventResolver, error) {
-	c := make(chan *newDataEventResolver)
+}) <-chan *newDataEvent {
+	c := make(chan *newDataEvent)
 
 	go func() {
 		ticker := time.NewTicker(2 * time.Second)
@@ -164,7 +165,7 @@ func (r *newDataResolver) NewData(ctx context.Context, args struct {
 						return
 					}
 
-					c <- &newDataEventResolver{
+					c <- &newDataEvent{
 						timestamp: graphql.Time{time.Unix(dp.Timestamp/1000, 0)},
 						value:     value,
 						deviceID:  dp.Tags["device_id"],
@@ -174,17 +175,17 @@ func (r *newDataResolver) NewData(ctx context.Context, args struct {
 		}
 	}()
 
-	return c, nil
+	return c
 }
 
-func (r *newDataEventResolver) Timestamp() graphql.Time {
+func (r *newDataEvent) Timestamp() graphql.Time {
 	return r.timestamp
 }
 
-func (r *newDataEventResolver) Value() float64 {
+func (r *newDataEvent) Value() float64 {
 	return r.value
 }
 
-func (r *newDataEventResolver) DeviceID() string {
+func (r *newDataEvent) DeviceID() string {
 	return r.deviceID
 }

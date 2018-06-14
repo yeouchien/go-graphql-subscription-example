@@ -117,6 +117,18 @@
 			"revisionTime": "2018-05-11T21:14:16Z"
 		},
 		{
+			"checksumSHA1": "aH0Zf0sx5SkYJHuLW28uVonDg4k=",
+			"path": "github.com/matiasanaya/graphql-transport-ws/graphqlws",
+			"revision": "0c66d79b1c7623d4335c3b6e17090ebf15ce5ef3",
+			"revisionTime": "2018-06-03T03:59:39Z"
+		},
+		{
+			"checksumSHA1": "OC4ACwqs8E5iUllGDpa4flyhs94=",
+			"path": "github.com/matiasanaya/graphql-transport-ws/graphqlws/internal/connection",
+			"revision": "0c66d79b1c7623d4335c3b6e17090ebf15ce5ef3",
+			"revisionTime": "2018-06-03T03:59:39Z"
+		},
+		{
 			"checksumSHA1": "SEnjvwVyfuU2xBaOfXfwPD5MZqk=",
 			"path": "github.com/mattn/go-colorable",
 			"revision": "efa589957cd060542a26d2dd7832fd6a6c6c3ade",
@@ -183,5 +195,5 @@
 			"revisionTime": "2018-05-09T21:44:12Z"
 		}
 	],
-	"rootPath": "github.com/yeouchien/graphql-ws-opentsdb/go"
+	"rootPath": "github.com/yeouchien/go-graphql-subscription-example/go"
 }

@@ -20,6 +20,7 @@ func NewResolver(opentsdbHost string) (*Resolver, error) {
 		opentsdbClient: cl,
 		newDataResolver: &newDataResolver{
 			opentsdbClient: cl,
+			newDataEvents:  make(chan *newDataEvent),
 		},
 	}, nil
 }
